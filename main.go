@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/webx-top/com"
 	"golang.org/x/mod/modfile"
@@ -32,7 +33,11 @@ func main() {
 	pkgDir := filepath.Dir(modfilePath)
 	vendorDir := filepath.Join(pkgDir, `vendor`)
 	results := Files{}
+	var maxLen int
 	for _, req := range f.Require {
+		if len(req.Mod.Path) > maxLen {
+			maxLen = len(req.Mod.Path)
+		}
 		dir := filepath.Join(vendorDir, req.Mod.Path)
 		fi, err := os.Stat(dir)
 		if err != nil {
@@ -53,8 +58,9 @@ func main() {
 		results = append(results, &File{Path: req.Mod.Path, Size: size})
 	}
 	sort.Sort(results)
+	maxLen++
 	for _, file := range results {
-		fmt.Println(file.Path + "\t\t\t" + com.HumaneFileSize(uint64(file.Size)))
+		fmt.Println(file.Path, strings.Repeat(` `, maxLen-len(file.Path)), com.HumaneFileSize(uint64(file.Size)))
 	}
 }
 
